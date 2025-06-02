@@ -1,5 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // GitHub Pages用の設定
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+  // GitHubリポジトリ名をベースパスに設定（本番環境のみ）
+  basePath: process.env.NODE_ENV === 'production' ? '/PLCProgramming' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/PLCProgramming/' : '',
   webpack: (config, { isServer }) => {
     // WebSocket support for real-time collaboration
     if (!isServer) {

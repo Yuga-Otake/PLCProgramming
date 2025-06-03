@@ -8,9 +8,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Omron PLC Web Editor',
-  description: 'Web-based PLC Editor for Omron NJ/NX Series with ST/Ladder/SFC conversion',
-  keywords: ['PLC', 'Omron', 'ST', 'Ladder', 'SFC', 'Editor'],
+  title: 'PLC Web Editor',
+  description: 'Web-based PLC Editor for NJ/NX Series with ST/Ladder/SFC conversion',
+  keywords: ['PLC', 'ST', 'Ladder', 'SFC', 'Editor'],
   authors: [{ name: 'PLC Studio Team' }],
   robots: 'noindex, nofollow', // Prevent indexing in development
 };
@@ -26,19 +26,20 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
         <ErrorBoundary>
           <Providers>
             <div className="flex h-full flex-col">
-              <header className="border-b border-gray-200 bg-white shadow-sm">
-                <div className="flex h-16 items-center justify-between px-4">
-                  <div className="flex items-center space-x-4">
-                    <h1 className="text-xl font-semibold text-gray-900">
-                      Omron PLC Studio
-                    </h1>
-                    <span className="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                      Beta
-                    </span>
+              <header className="bg-white shadow-sm border-b">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between items-center py-6">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <h1 className="text-2xl font-bold text-gray-900">
+                          PLC Studio
+                        </h1>
+                      </div>
+                    </div>
+                    <nav>
+                      {/* Navigation will be implemented here */}
+                    </nav>
                   </div>
-                  <nav>
-                    {/* Navigation will be implemented here */}
-                  </nav>
                 </div>
               </header>
               
@@ -46,17 +47,19 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
                 {children}
               </main>
               
-              <footer className="border-t border-gray-200 bg-white px-4 py-3">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div>
-                    &copy; 2024 Omron PLC Studio. All rights reserved.
-                  </div>
-                  <div className="flex space-x-4">
-                    <span>Version 0.1.0</span>
-                    <span>•</span>
-                    <span className="text-gray-500">
-                      ヘルプ
-                    </span>
+              <footer className="bg-gray-50 border-t">
+                <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                  <div className="flex flex-col items-center">
+                    <p className="text-sm text-gray-500">
+                      &copy; 2024 PLC Studio. All rights reserved.
+                    </p>
+                    <div className="flex space-x-4">
+                      <span>Version 0.1.0</span>
+                      <span>•</span>
+                      <span className="text-gray-500">
+                        ヘルプ
+                      </span>
+                    </div>
                   </div>
                 </div>
               </footer>

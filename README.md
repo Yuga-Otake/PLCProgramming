@@ -1,6 +1,6 @@
-# 🏭 Omron PLC Web Studio
+# 🏭 PLC Web Editor
 
-Omron NJ/NX シリーズPLC用のWebベース統合開発環境（IDE）
+NJ/NX シリーズPLC用のWebベース統合開発環境（IDE）
 
 ## ✨ 実装完了機能
 
@@ -101,11 +101,12 @@ src/
         └── plc.ts              # 型定義
 ```
 
-## 🏭 **Omron PLCシリーズ対応**
+## 🏭 **PLCシリーズ対応**
 
-このツールは以下のOmron PLCシリーズをターゲットとしています：
-- **NJ Series** - 高性能マシンオートメーションコントローラ
-- **NX Series** - 産業用PCベースコントローラ
+このツールは以下のPLCシリーズをターゲットとしています：
+
+* **NJ Series** - 高性能マシンオートメーションコントローラ
+* **NX Series** - 産業用PCベースコントローラ
 
 ## 🎯 **今後の拡張予定**
 

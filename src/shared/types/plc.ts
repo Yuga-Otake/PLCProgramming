@@ -1,6 +1,6 @@
 /**
- * Omron NJ/NX PLC Language Types
- * Core types for AST-based language conversion
+ * NJ/NX PLC Language Types
+ * Defines the core language structure for PLC programming
  */
 
 // Base AST Node Types

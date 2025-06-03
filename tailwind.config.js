@@ -9,8 +9,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Omron brand colors
-        omron: {
+        // PLC brand colors
+        plc: {
           50: '#f0f9ff',
           100: '#e0f2fe',
           200: '#bae6fd',
@@ -21,13 +21,6 @@ module.exports = {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
-        },
-        // PLC language specific colors
-        plc: {
-          st: '#10b981',      // Green for ST
-          ld: '#f59e0b',      // Orange for Ladder
-          sfc: '#8b5cf6',     // Purple for SFC
-          mixed: '#6366f1',   // Indigo for mixed
         },
         // Status colors
         status: {

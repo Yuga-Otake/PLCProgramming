@@ -136,57 +136,22 @@ export function updateEditorConfig(
   }
 }
 
-// Omron PLC固有設定
-export const OMRON_PLC_CONFIG = {
-  series: {
-    NJ: {
-      maxIO: 2048,
-      maxPrograms: 128,
-      maxFunctions: 256,
-      supportedLanguages: ['ST', 'LD', 'SFC', 'FBD'],
-    },
-    NX: {
-      maxIO: 4096,
-      maxPrograms: 256,
-      maxFunctions: 512,
-      supportedLanguages: ['ST', 'LD', 'SFC', 'FBD', 'LADDER_IN_ST'],
-    },
-  },
-
-  addressing: {
-    input: {
-      prefix: 'X',
-      range: [0, 2047],
-      format: 'X{000}',
-    },
-    output: {
-      prefix: 'Y',
-      range: [0, 2047],
-      format: 'Y{000}',
-    },
-    memory: {
-      prefix: 'M',
-      range: [0, 8191],
-      format: 'M{000}',
-    },
-    timer: {
-      prefix: 'T',
-      range: [0, 511],
-      format: 'T{000}',
-    },
-    counter: {
-      prefix: 'C',
-      range: [0, 511],
-      format: 'C{000}',
-    },
-  },
-
-  dataTypes: {
-    BOOL: { size: 1, description: 'Boolean' },
-    INT: { size: 16, description: 'Integer' },
-    DINT: { size: 32, description: 'Double Integer' },
-    REAL: { size: 32, description: 'Real Number' },
-    TIME: { size: 32, description: 'Time Duration' },
-    STRING: { size: 256, description: 'String' },
-  },
-} as const; 
+// PLC固有設定
+export const PLC_CONFIG = {
+  // NJ/NX series specific settings
+  supportedSeries: ['NJ', 'NX'],
+  maxVariableLength: 32,
+  maxProgramBlocks: 1024,
+  supportedDataTypes: [
+    'BOOL', 'SINT', 'USINT', 'INT', 'UINT', 
+    'DINT', 'UDINT', 'LINT', 'ULINT',
+    'REAL', 'LREAL', 'TIME', 'STRING'
+  ],
+  supportedLanguages: ['ST', 'LD', 'SFC', 'FBD'],
+  hardware: {
+    maxInputs: 2048,
+    maxOutputs: 2048,
+    maxMemory: '32MB',
+    executionCycle: '0.1ms'
+  }
+}; 

@@ -1,7 +1,7 @@
 {
-  "name": "omron-plc-web-editor",
+  "name": "plc-web-editor",
   "version": "0.1.0",
-  "description": "Web-based PLC Editor for Omron NJ/NX Series with ST/Ladder/SFC conversion",
+  "description": "Web-based PLC Editor for NJ/NX Series with ST/Ladder/SFC conversion",
   "private": true,
   "scripts": {
     "dev": "next dev",

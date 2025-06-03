@@ -26,7 +26,7 @@ interface LadderInSTEditorProps {
 export function LadderInSTEditor({ onCodeChange }: LadderInSTEditorProps): JSX.Element {
   // 状態管理
   const [stCode, setSTCode] = useState<string>(`// Ladder-in-ST Program Example
-// Omron NJ/NX Series PLC Programming
+// NJ/NX Series PLC Programming
 
 // 変数宣言
 VAR
@@ -281,8 +281,8 @@ END_IF;`);
         <div className="bg-white border-b border-gray-200 p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-medium text-gray-900">Ladder-in-ST エディタ</h3>
-              <span className="text-sm text-gray-500">Omron NJ/NX Series</span>
+              <h3 className="text-lg font-medium">Ladder-in-ST Editor</h3>
+              <span className="text-sm text-gray-500">NJ/NX Series</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500">

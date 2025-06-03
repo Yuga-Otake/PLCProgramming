@@ -6,6 +6,7 @@ import { EditorLayout, ToolbarButton, StatusIndicator } from '@/shared';
 import { LadderEditor } from '../../features/ladder-editor/components/ladder-editor';
 import { SFCEditor } from '../../features/sfc-editor/components/sfc-editor';
 import { LadderInSTEditor } from '../../features/ladder-in-st-editor/components/ladder-in-st-editor';
+import { PLCEditorHeader } from './PLCEditorHeader';
 
 export default function PLCEditor(): JSX.Element {
   const [currentView, setCurrentView] = useState<PLCViewType>(PLCViewType.ST);
@@ -35,7 +36,7 @@ export default function PLCEditor(): JSX.Element {
         return (
           <EditorLayout
             title="Structured Text エディタ"
-            subtitle="Omron NJ/NX Series"
+            subtitle="NJ/NX Series"
             sidebar={
               <div className="p-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">プロジェクト</h2>
@@ -111,19 +112,11 @@ export default function PLCEditor(): JSX.Element {
             <div className="flex h-full items-center justify-center text-gray-500">
               <div className="text-center">
                 <div className="mb-4">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
+                  <PLCEditorHeader
+                    title="PLC Web Editor"
+                    subtitle="NJ/NX Series"
+                    version="v0.1.0 Beta"
+                  />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   {currentView} エディタ

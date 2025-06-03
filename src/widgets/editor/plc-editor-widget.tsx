@@ -190,7 +190,7 @@ export function PLCEditorWidget(): JSX.Element {
           </div>
           
           <div className="flex items-center space-x-2">
-            <span>Omron PLC Studio Beta v0.1.0</span>
+            <span>PLC Studio Beta v0.1.0</span>
           </div>
         </div>
       </div>

@@ -37,8 +37,9 @@ export {
 
 export {
   EDITOR_CONFIG,
-  OMRON_PLC_CONFIG,
-  getEditorConfig,
+  LADDER_EDITOR_CONFIG,
+  SFC_EDITOR_CONFIG,
+  PLC_CONFIG,
 } from './config/editor-config';
 
 // 型のみの再エクスポート

@@ -29,7 +29,7 @@
 ### 5. **設定の一元管理**
 **ファイル**: `src/shared/config/editor-config.ts`
 - `EDITOR_CONFIG` - グリッド、カラー、アニメーション等の統一設定
-- `OMRON_PLC_CONFIG` - Omron PLC固有設定（NJ/NX series対応）
+- `PLC_CONFIG` - PLC固有設定（NJ/NX series対応）
 - 型安全な設定アクセス機能
 
 ### 6. **エクスポートの統一**

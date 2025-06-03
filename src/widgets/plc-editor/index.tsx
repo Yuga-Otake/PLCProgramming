@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import { PLCViewType } from '@/shared/types/plc';
-import { EditorLayout, ToolbarButton, StatusIndicator } from '@/shared';
 import { LadderEditor } from '../../features/ladder-editor/components/ladder-editor';
 import { SFCEditor } from '../../features/sfc-editor/components/sfc-editor';
 import { LadderInSTEditor } from '../../features/ladder-in-st-editor/components/ladder-in-st-editor';
-import { PLCEditorHeader } from './PLCEditorHeader';
 
 export default function PLCEditor(): JSX.Element {
   const [currentView, setCurrentView] = useState<PLCViewType>(PLCViewType.ST);
@@ -34,57 +32,12 @@ export default function PLCEditor(): JSX.Element {
         return <LadderInSTEditor onCodeChange={handleCodeChange} />;
       case PLCViewType.ST:
         return (
-          <EditorLayout
-            title="Structured Text エディタ"
-            subtitle="NJ/NX Series"
-            sidebar={
-              <div className="p-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">プロジェクト</h2>
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    新しいプログラムを作成するか、既存のファイルを開いてください。
-                  </div>
-                  <ToolbarButton variant="primary" size="md">
-                    新規プログラム作成
-                  </ToolbarButton>
-                  <ToolbarButton variant="secondary" size="md">
-                    ファイルを開く
-                  </ToolbarButton>
-                </div>
-              </div>
-            }
-            toolbar={
-              <>
-                <ToolbarButton
-                  variant="primary"
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedSTCode);
-                    alert('STコードをクリップボードにコピーしました！');
-                  }}
-                >
-                  📋 コピー
-                </ToolbarButton>
-                <ToolbarButton variant="success">
-                  ✓ 構文チェック
-                </ToolbarButton>
-              </>
-            }
-            statusBar={
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center space-x-4">
-                  <span>行: {generatedSTCode.split('\n').length}</span>
-                  <span>文字数: {generatedSTCode.length}</span>
-                  <StatusIndicator status="ready" text="準備完了" />
-                </div>
-                <div>
-                  <span>
-                    ラダー図からの自動生成: {generatedSTCode.includes('Generated ST Code') ? '有効' : '手動編集'}
-                  </span>
-                </div>
-              </div>
-            }
-          >
-            <div className="p-4 h-full">
+          <div className="h-full flex flex-col">
+            <div className="bg-white border-b border-gray-200 p-4">
+              <h2 className="text-lg font-medium text-gray-900">Structured Text エディタ</h2>
+              <p className="text-sm text-gray-500">NJ/NX Series</p>
+            </div>
+            <div className="flex-1 p-4">
               <div className="h-full border border-gray-300 rounded-lg overflow-hidden">
                 <textarea
                   value={generatedSTCode}
@@ -95,76 +48,76 @@ export default function PLCEditor(): JSX.Element {
                 />
               </div>
             </div>
-          </EditorLayout>
+          </div>
         );
       default:
         return (
-          <EditorLayout
-            title={`${currentView} エディタ`}
-            subtitle={views.find(v => v.id === currentView)?.label || ''}
-            sidebar={
-              <div className="p-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">ツール</h2>
-                <div className="text-sm text-gray-600">実装準備中...</div>
-              </div>
-            }
-          >
-            <div className="flex h-full items-center justify-center text-gray-500">
-              <div className="text-center">
-                <div className="mb-4">
-                  <PLCEditorHeader
-                    title="PLC Web Editor"
-                    subtitle="NJ/NX Series"
-                    version="v0.1.0 Beta"
+          <div className="flex h-full items-center justify-center text-gray-500">
+            <div className="text-center">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {currentView} エディタ
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {views.find(v => v.id === currentView)?.label} 編集モード
-                </p>
-                <p className="text-xs text-gray-500">
-                  実装準備中です。AST変換エンジンとビューレンダリングを構築中...
-                </p>
+                </svg>
               </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {currentView} エディタ
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {views.find(v => v.id === currentView)?.label} 編集モード
+              </p>
+              <p className="text-xs text-gray-500">
+                実装準備中です。
+              </p>
             </div>
-          </EditorLayout>
+          </div>
         );
     }
   };
 
   return (
-    <div className="plc-editor-container">
-      {/* Main Content */}
-      <div className="plc-main-content">
-        {/* Toolbar */}
-        <div className="plc-toolbar">
-          <div className="flex space-x-1">
-            {views.map((view) => (
-              <button
-                key={view.id}
-                className={`plc-tab ${
-                  currentView === view.id ? 'plc-tab-active' : ''
-                }`}
-                onClick={() => setCurrentView(view.id)}
-                title={view.label}
-              >
-                {view.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <ToolbarButton variant="secondary">保存</ToolbarButton>
-            <ToolbarButton variant="primary">変換</ToolbarButton>
-          </div>
+    <div className="h-full flex flex-col bg-white">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
+        <div className="flex space-x-1">
+          {views.map((view) => (
+            <button
+              key={view.id}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                currentView === view.id 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setCurrentView(view.id)}
+              title={view.label}
+            >
+              {view.name}
+            </button>
+          ))}
         </div>
 
-        {/* Editor Pane */}
-        <div className="plc-editor-pane">
-          {renderEditor()}
+        <div className="flex items-center space-x-2">
+          <button className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">
+            保存
+          </button>
+          <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+            変換
+          </button>
         </div>
+      </div>
+
+      {/* Editor Pane */}
+      <div className="flex-1 overflow-hidden">
+        {renderEditor()}
       </div>
     </div>
   );

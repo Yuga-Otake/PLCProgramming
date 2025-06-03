@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { captureError } from '@/shared/lib/self-healing/error-tracker';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -24,19 +23,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  async componentDidCatch(error: Error, errorInfo: React.ErrorInfo): Promise<void> {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('Error Boundary caught an error:', error, errorInfo);
     
-    try {
-      const errorId = await captureError(error, {
-        currentView: 'error-boundary',
-        lastAction: 'component-error',
-      });
-      
-      this.setState({ errorId });
-    } catch (captureErr) {
-      console.error('Failed to capture error:', captureErr);
-    }
+    // Generate a simple error ID
+    const errorId = `error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    this.setState({ errorId });
   }
 
   private handleRetry = (): void => {
@@ -96,8 +88,7 @@ function DefaultErrorFallback({ error, errorId, retry }: DefaultErrorFallbackPro
             </h3>
             <div className="mt-2 text-sm text-gray-500">
               <p>
-                予期しないエラーが発生しました。エラーは自動的に報告され、
-                開発チームが修正に取り組みます。
+                予期しないエラーが発生しました。ページを再読み込みしてください。
               </p>
             </div>
           </div>

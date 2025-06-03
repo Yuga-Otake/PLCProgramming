@@ -268,25 +268,282 @@ abstract class BaseCodeGenerator {
 // ST Code Generator
 class STCodeGenerator extends BaseCodeGenerator {
   generate(ast: PLCASTNode): ConversionResult {
-    return {
-      success: true,
-      ast,
-      sourceCode: `// Generated ST code for ${ast.type}\n// TODO: Implement ST generation`,
-      errors: [],
-      warnings: [],
-    };
+    try {
+      const sourceCode = this.generateSTCode(ast);
+      return {
+        success: true,
+        ast,
+        sourceCode,
+        errors: [],
+        warnings: [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        ast,
+        sourceCode: '',
+        errors: [
+          {
+            id: uuidv4(),
+            message: `ST generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            line: 0,
+            column: 0,
+            severity: 'error',
+          },
+        ],
+        warnings: [],
+      };
+    }
+  }
+
+  private generateSTCode(ast: PLCASTNode): string {
+    if (ast.type === PLCNodeType.PROGRAM) {
+      const program = ast as STProgram;
+      let code = `// Generated ST Code\n`;
+      code += `PROGRAM ${program.name}\n\n`;
+      
+      // Generate variables
+      if (program.variables.length > 0) {
+        code += `VAR\n`;
+        for (const variable of program.variables) {
+          code += `  ${(variable as any).name} : ${(variable as any).dataType}`;
+          if ((variable as any).initialValue) {
+            code += ` := ${(variable as any).initialValue}`;
+          }
+          code += `;\n`;
+        }
+        code += `END_VAR\n\n`;
+      }
+      
+      // Generate body statements
+      for (const statement of program.body) {
+        code += this.generateStatement(statement as any) + '\n';
+      }
+      
+      code += `\nEND_PROGRAM\n`;
+      return code;
+    }
+    
+    return `// Generated ST code for ${ast.type}\n// TODO: Implement ST generation for this node type`;
+  }
+
+  private generateStatement(statement: any): string {
+    switch (statement.type) {
+      case PLCNodeType.ASSIGNMENT:
+        return `  ${statement.variable} := ${statement.expression};`;
+      case PLCNodeType.IF_STATEMENT:
+        return `  IF ${statement.condition} THEN\n    // TODO: nested statements\n  END_IF;`;
+      case PLCNodeType.FUNCTION_BLOCK_CALL:
+        return `  ${statement.functionName}();`;
+      default:
+        return `  // Unknown statement type: ${statement.type}`;
+    }
   }
 }
 
+// Enhanced LD Code Generator with actual ST to LD conversion
 class LDCodeGenerator extends BaseCodeGenerator {
   generate(ast: PLCASTNode): ConversionResult {
+    try {
+      const sourceCode = this.generateLDCode(ast);
+      return {
+        success: true,
+        ast,
+        sourceCode,
+        errors: [],
+        warnings: [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        ast,
+        sourceCode: '',
+        errors: [
+          {
+            id: uuidv4(),
+            message: `LD generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            line: 0,
+            column: 0,
+            severity: 'error',
+          },
+        ],
+        warnings: [],
+      };
+    }
+  }
+
+  private generateLDCode(ast: PLCASTNode): string {
+    if (ast.type === PLCNodeType.PROGRAM) {
+      const program = ast as STProgram;
+      let code = `// ラダー図プログラム: ${program.name}\n`;
+      code += `// Generated from ST Code\n\n`;
+      
+      // Generate program metadata
+      code += `// プログラム情報\n`;
+      code += `// 名前: ${program.name}\n`;
+      code += `// 変数数: ${program.variables.length}\n`;
+      code += `// ステートメント数: ${program.body.length}\n\n`;
+      
+      // Generate variable declarations as comments
+      if (program.variables.length > 0) {
+        code += `// === 変数宣言 ===\n`;
+        for (const variable of program.variables) {
+          const varNode = variable as any;
+          code += `// ${varNode.name} : ${varNode.dataType}`;
+          if (varNode.initialValue) {
+            code += ` := ${varNode.initialValue}`;
+          }
+          code += `\n`;
+        }
+        code += `\n`;
+      }
+      
+      // Convert statements to ladder logic representation
+      code += `// === ラダー図 ===\n`;
+      let rungNumber = 1;
+      
+      for (const statement of program.body) {
+        const rungCode = this.convertStatementToRung(statement as any, rungNumber);
+        code += rungCode + '\n';
+        rungNumber++;
+      }
+      
+      // Add ladder diagram JSON representation for UI
+      code += `\n// === ラダー図データ (JSON) ===\n`;
+      code += `/*\n`;
+      code += JSON.stringify(this.generateLadderElements(program), null, 2);
+      code += `\n*/\n`;
+      
+      return code;
+    }
+    
+    return `// Generated LD code for ${ast.type}\n// TODO: Implement LD generation for this node type`;
+  }
+
+  private convertStatementToRung(statement: any, rungNumber: number): string {
+    switch (statement.type) {
+      case PLCNodeType.ASSIGNMENT:
+        return this.generateAssignmentRung(statement, rungNumber);
+      case PLCNodeType.IF_STATEMENT:
+        return this.generateIfRung(statement, rungNumber);
+      case PLCNodeType.FUNCTION_BLOCK_CALL:
+        return this.generateFunctionCallRung(statement, rungNumber);
+      default:
+        return `// Rung ${rungNumber}: Unknown statement type: ${statement.type}`;
+    }
+  }
+
+  private generateAssignmentRung(assignment: any, rungNumber: number): string {
+    const variable = assignment.variable;
+    const expression = assignment.expression;
+    
+    // Simple assignment pattern: variable := expression
+    let rung = `// Rung ${rungNumber}: ${variable} := ${expression}\n`;
+    rung += `//    [----] ---- ( ${variable} )\n`;
+    rung += `//     ^condition from expression: ${expression}\n`;
+    
+    return rung;
+  }
+
+  private generateIfRung(ifStatement: any, rungNumber: number): string {
+    const condition = ifStatement.condition;
+    
+    let rung = `// Rung ${rungNumber}: IF ${condition} THEN\n`;
+    rung += `//    [${condition}] ---- ( Action )\n`;
+    rung += `//     ^condition check\n`;
+    
+    return rung;
+  }
+
+  private generateFunctionCallRung(funcCall: any, rungNumber: number): string {
+    const functionName = funcCall.functionName;
+    
+    let rung = `// Rung ${rungNumber}: ${functionName}()\n`;
+    rung += `//    [----] ---- [FB: ${functionName}]\n`;
+    rung += `//     ^enable condition\n`;
+    
+    return rung;
+  }
+
+  private generateLadderElements(program: STProgram): any {
+    const rungs = [];
+    
+    for (let i = 0; i < program.body.length; i++) {
+      const statement = program.body[i] as any;
+      const rung = {
+        id: uuidv4(),
+        number: i + 1,
+        elements: this.convertStatementToElements(statement),
+        comment: `Generated from: ${statement.type}`
+      };
+      rungs.push(rung);
+    }
+    
     return {
-      success: true,
-      ast,
-      sourceCode: `// Generated LD code for ${ast.type}\n// TODO: Implement LD generation`,
-      errors: [],
-      warnings: [],
+      programName: program.name,
+      variables: program.variables.map((v: any) => ({
+        name: v.name,
+        type: v.dataType,
+        initialValue: v.initialValue
+      })),
+      rungs
     };
+  }
+
+  private convertStatementToElements(statement: any): any[] {
+    const elements = [];
+    
+    switch (statement.type) {
+      case PLCNodeType.ASSIGNMENT:
+        // Create a simple NO contact -> Coil pattern
+        elements.push({
+          id: uuidv4(),
+          type: 'NO_CONTACT',
+          variable: 'ENABLE', // Placeholder for enable condition
+          position: { x: 1, y: 0 }
+        });
+        elements.push({
+          id: uuidv4(),
+          type: 'OUTPUT_COIL',
+          variable: statement.variable,
+          position: { x: 6, y: 0 }
+        });
+        break;
+        
+      case PLCNodeType.IF_STATEMENT:
+        // Create condition contact
+        elements.push({
+          id: uuidv4(),
+          type: 'NO_CONTACT',
+          variable: statement.condition,
+          position: { x: 1, y: 0 }
+        });
+        elements.push({
+          id: uuidv4(),
+          type: 'OUTPUT_COIL',
+          variable: 'ACTION_OUTPUT',
+          position: { x: 6, y: 0 }
+        });
+        break;
+        
+      case PLCNodeType.FUNCTION_BLOCK_CALL:
+        // Create function block call
+        elements.push({
+          id: uuidv4(),
+          type: 'NO_CONTACT',
+          variable: 'ENABLE',
+          position: { x: 1, y: 0 }
+        });
+        elements.push({
+          id: uuidv4(),
+          type: 'FUNCTION_BLOCK',
+          functionName: statement.functionName,
+          position: { x: 3, y: 0 }
+        });
+        break;
+    }
+    
+    return elements;
   }
 }
 
@@ -402,21 +659,24 @@ class LadderInSTParser extends BaseParser {
   }
 }
 
-// Export convenience functions
+// Utility functions for external use
 export const convertASTToView = (
   ast: PLCASTNode,
   targetView: PLCViewType
 ): ConversionResult => {
-  return PLCASTConverter.getInstance().convertToView(ast, targetView);
+  const converter = PLCASTConverter.getInstance();
+  return converter.convertToView(ast, targetView);
 };
 
 export const parseCodeToAST = (
   sourceCode: string,
   sourceView: PLCViewType
 ): ConversionResult => {
-  return PLCASTConverter.getInstance().parseToAST(sourceCode, sourceView);
+  const converter = PLCASTConverter.getInstance();
+  return converter.parseToAST(sourceCode, sourceView);
 };
 
 export const validateAST = (ast: PLCASTNode): ConversionError[] => {
-  return PLCASTConverter.getInstance().validateAST(ast);
+  const converter = PLCASTConverter.getInstance();
+  return converter.validateAST(ast);
 };

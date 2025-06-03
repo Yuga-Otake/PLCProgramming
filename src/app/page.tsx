@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CustomFBEditor } from '../features/custom-fb-editor/components/CustomFBEditor';
 import { CustomFBLibraryBrowser } from '../features/custom-fb-editor/components/CustomFBLibraryBrowser';
+import { LadderEditor } from '../features/ladder-editor/components/ladder-editor';
 import { CustomFunctionBlock } from '../shared/types/custom-function-block';
 
 type EditorType = 'ladder' | 'st' | 'sfc' | 'hybrid' | 'custom-fb' | 'fb-library';
@@ -120,10 +121,7 @@ export default function HomePage() {
         <div className="px-4 py-6 sm:px-0">
           <div className="border-4 border-dashed border-gray-200 rounded-lg h-[800px]">
             {activeEditor === 'ladder' && (
-              <PlaceholderEditor 
-                title="ラダー図エディタ" 
-                description="既存のラダーエディタと統合予定"
-              />
+              <LadderEditor />
             )}
             {activeEditor === 'st' && (
               <PlaceholderEditor 
@@ -140,10 +138,7 @@ export default function HomePage() {
             {activeEditor === 'hybrid' && (
               <div className="flex h-full">
                 <div className="w-1/2 border-r border-gray-200">
-                  <PlaceholderEditor 
-                    title="ラダー図エディタ" 
-                    description="Ladder Diagram"
-                  />
+                  <LadderEditor />
                 </div>
                 <div className="w-1/2">
                   <PlaceholderEditor 

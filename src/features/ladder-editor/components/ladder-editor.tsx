@@ -13,12 +13,13 @@ import {
   WireVertical,
   WireJunction,
   PowerRail,
-  LadderElementType 
+  LadderElementType,
+  CustomFBBlock
 } from './ladder-elements';
 import { 
   LadderElement,
   LadderRung,
-  TOOLBOX_ELEMENTS,
+  getAllToolboxElements,
   groupToolboxElementsByCategory,
   getDefaultVariable,
   generateVariableTable,
@@ -76,7 +77,7 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
 
   // メモ化された値
   const toolboxCategories = useMemo(() => 
-    groupToolboxElementsByCategory(TOOLBOX_ELEMENTS), 
+    groupToolboxElementsByCategory(getAllToolboxElements()), 
     []
   );
 
@@ -91,7 +92,7 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
   );
 
   const filteredSuggestions = useMemo(() => 
-    filterSuggestions(TOOLBOX_ELEMENTS, searchFilter), 
+    filterSuggestions(getAllToolboxElements(), searchFilter), 
     [searchFilter]
   );
 
@@ -134,14 +135,19 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
   }, []);
 
   // 要素挿入
-  const insertElementAtActiveCell = useCallback((elementType: LadderElementType) => {
+  const insertElementAtActiveCell = useCallback((elementType: LadderElementType, customFBId?: string) => {
     if (!activeCell) return;
 
     const newElement: LadderElement = {
       id: uuidv4(),
       type: elementType,
-      variable: getDefaultVariable(elementType),
-      position: activeCell.position
+      variable: getDefaultVariable(elementType, customFBId),
+      position: activeCell.position,
+      // カスタムFBの場合の追加プロパティ
+      ...(elementType === LadderElementType.CUSTOM_FB_BLOCK && customFBId && {
+        customFBId,
+        fbInstanceName: getDefaultVariable(elementType, customFBId)
+      })
     };
 
     setRungs(prevRungs => 
@@ -169,25 +175,13 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
     if (filteredSuggestions.length > 0 && activeCell) {
       const selectedSuggestion = filteredSuggestions[selectedSuggestionIndex];
       
-      // 要素を直接挿入
-      const newElement: LadderElement = {
-        id: uuidv4(),
-        type: selectedSuggestion.type,
-        variable: getDefaultVariable(selectedSuggestion.type),
-        position: activeCell.position
-      };
-
-      setRungs(prevRungs => 
-        prevRungs.map(rung =>
-          rung.id === activeCell.rungId
-            ? { ...rung, elements: [...rung.elements, newElement] }
-            : rung
-        )
+      // 要素を直接挿入（カスタムFBの場合はcustomFBIdも渡す）
+      insertElementAtActiveCell(
+        selectedSuggestion.type,
+        selectedSuggestion.customFBId
       );
-
-      resetIntelligentInput();
     }
-  }, [filteredSuggestions, selectedSuggestionIndex, activeCell, resetIntelligentInput]);
+  }, [filteredSuggestions, selectedSuggestionIndex, activeCell, insertElementAtActiveCell]);
 
   // 削除機能
   const handleDeleteElements = useCallback(() => {
@@ -416,64 +410,64 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
     }
   }, [simulator]);
 
-  // 要素をレンダリング
+  // 要素レンダリング
   const renderElement = useCallback((element: LadderElement) => {
+    const isSelected = selectedElements.has(element.id);
+    
+    const handleElementSelect = (id: string) => {
+      setSelectedElement(id);
+      if (!selectedElements.has(id)) {
+        setSelectedElements(new Set([id]));
+      }
+    };
+
+    const handleElementEdit = (id: string) => {
+      // 要素編集機能（将来実装）
+      console.log('Edit element:', id);
+    };
+
     const commonProps = {
       id: element.id,
       variable: element.variable,
-      selected: element.selected ?? false,
-      onSelect: (id: string) => handleElementSelect(id, false),
+      selected: isSelected,
+      onSelect: handleElementSelect,
       onEdit: handleElementEdit
     };
 
-    const elementComponent = (() => {
-      switch (element.type) {
-        case LadderElementType.NO_CONTACT:
-          return <NOContact {...commonProps} />;
-        case LadderElementType.NC_CONTACT:
-          return <NCContact {...commonProps} />;
-        case LadderElementType.OUTPUT_COIL:
-          return <OutputCoil {...commonProps} />;
-        case LadderElementType.SET_COIL:
-          return <SetCoil {...commonProps} />;
-        case LadderElementType.RESET_COIL:
-          return <ResetCoil {...commonProps} />;
-        case LadderElementType.TIMER_BLOCK:
-          return <TimerBlock {...commonProps} />;
-        case LadderElementType.COUNTER_BLOCK:
-          return <CounterBlock {...commonProps} />;
-        case LadderElementType.WIRE_HORIZONTAL:
-          return <WireHorizontal {...commonProps} />;
-        case LadderElementType.WIRE_VERTICAL:
-          return <WireVertical {...commonProps} />;
-        case LadderElementType.WIRE_JUNCTION:
-          return <WireJunction {...commonProps} />;
-        default:
-          return null;
-      }
-    })();
-
-    // 選択された要素に削除ボタンを表示
-    if (element.selected) {
-      return (
-        <div className="relative">
-          {elementComponent}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleElementDelete(element.id);
-            }}
-            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center z-10"
-            title="削除 (Delete)"
-          >
-            ×
-          </button>
-        </div>
-      );
+    switch (element.type) {
+      case LadderElementType.NO_CONTACT:
+        return <NOContact {...commonProps} />;
+      case LadderElementType.NC_CONTACT:
+        return <NCContact {...commonProps} />;
+      case LadderElementType.OUTPUT_COIL:
+        return <OutputCoil {...commonProps} />;
+      case LadderElementType.SET_COIL:
+        return <SetCoil {...commonProps} />;
+      case LadderElementType.RESET_COIL:
+        return <ResetCoil {...commonProps} />;
+      case LadderElementType.TIMER_BLOCK:
+        return <TimerBlock {...commonProps} />;
+      case LadderElementType.COUNTER_BLOCK:
+        return <CounterBlock {...commonProps} />;
+      case LadderElementType.CUSTOM_FB_BLOCK:
+        // カスタムFBブロックの場合、追加のプロパティを渡す
+        const customFBProps = {
+          ...commonProps,
+          fbName: element.fbInstanceName || element.variable || 'CustomFB',
+          inputCount: 2,  // 動的に設定可能
+          outputCount: 1  // 動的に設定可能
+        };
+        return <CustomFBBlock {...customFBProps} />;
+      case LadderElementType.WIRE_HORIZONTAL:
+        return <WireHorizontal {...commonProps} />;
+      case LadderElementType.WIRE_VERTICAL:
+        return <WireVertical {...commonProps} />;
+      case LadderElementType.WIRE_JUNCTION:
+        return <WireJunction {...commonProps} />;
+      default:
+        return <div className="w-16 h-8 bg-red-100 border border-red-400 text-red-700 text-xs flex items-center justify-center">Unknown</div>;
     }
-
-    return elementComponent;
-  }, [handleElementSelect, handleElementEdit, handleElementDelete]);
+  }, [selectedElements]);
 
   // 新しいラングを追加
   const addNewRung = useCallback(() => {
@@ -799,13 +793,13 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
                 <div className="max-h-64 overflow-y-auto">
                   {filteredSuggestions.map((suggestion, index) => (
                     <div
-                      key={suggestion.type}
+                      key={suggestion.type + (suggestion.customFBId || '')}
                       className={`flex items-center space-x-3 p-2 rounded cursor-pointer transition-colors ${
                         index === selectedSuggestionIndex
                           ? 'bg-blue-100 border border-blue-300'
                           : 'hover:bg-gray-50'
                       }`}
-                      onClick={() => insertElementAtActiveCell(suggestion.type)}
+                      onClick={() => insertElementAtActiveCell(suggestion.type, suggestion.customFBId)}
                     >
                       <span className="font-mono text-sm text-gray-600 w-8">{suggestion.icon}</span>
                       <div className="flex-1">
@@ -986,7 +980,7 @@ export function LadderEditor({ onCodeChange }: LadderEditorProps): JSX.Element {
                     <tr key={index} className="border-b border-gray-200">
                       <td className="py-1 font-mono text-blue-600">{row.variable}</td>
                       <td className="py-1 text-gray-600">{row.type.replace('_', ' ')}</td>
-                      <td className="py-1 text-center">{row.count}</td>
+                      <td className="py-1 text-center">{row.usageCount}</td>
                     </tr>
                   ))}
                 </tbody>

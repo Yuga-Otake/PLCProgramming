@@ -32,9 +32,12 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Build
+    - name: Build for GitHub Pages
       run: npm run build
-      
+      env:
+        NODE_ENV: production
+        GITHUB_PAGES: true
+        
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:

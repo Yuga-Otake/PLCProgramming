@@ -20,6 +20,7 @@ import {
   getValidationSummary,
   type ValidationResult 
 } from '@/shared/lib/validation/plc-validator';
+import { FBPalette } from '../../features/fb-palette/components/fb-palette';
 
 // 各ビューの状態を管理するインターフェース
 interface ViewState {
@@ -394,14 +395,155 @@ export default function PLCEditor(): React.JSX.Element {
     return viewStates[currentView]?.validationResult;
   }, [currentView, viewStates]);
 
+  const [showFBPalette, setShowFBPalette] = useState(false);
+
+  const handleInsertFB = useCallback((fbCode: string) => {
+    // カーソル位置を取得してFBコードを挿入
+    const textarea = document.querySelector('textarea[placeholder*="Structured Text"]') as HTMLTextAreaElement;
+    if (!textarea) {
+      console.error('STエディタのテキストエリアが見つかりません');
+      return;
+    }
+
+    const currentState = viewStates[currentView];
+    const currentCode = currentState.sourceCode;
+    const cursorPosition = textarea.selectionStart || currentCode.length;
+    
+    // カーソル位置でコードを分割
+    const beforeCursor = currentCode.substring(0, cursorPosition);
+    const afterCursor = currentCode.substring(cursorPosition);
+    
+    // 適切な改行を追加
+    const needsLeadingNewline = beforeCursor.length > 0 && !beforeCursor.endsWith('\n');
+    const needsTrailingNewline = afterCursor.length > 0 && !afterCursor.startsWith('\n');
+    
+    const leadingSpace = needsLeadingNewline ? '\n\n' : '';
+    const trailingSpace = needsTrailingNewline ? '\n\n' : '';
+    
+    // 新しいコードを構築
+    const newCode = beforeCursor + leadingSpace + fbCode + trailingSpace + afterCursor;
+    
+    // STエディタを更新
+    handleSTCodeChange(newCode);
+    
+    // フォーカスを戻してカーソル位置を調整
+    setTimeout(() => {
+      const newCursorPosition = cursorPosition + leadingSpace.length + fbCode.length;
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+    }, 100);
+    
+    console.log('FBコードを挿入しました:', fbCode);
+  }, [currentView, viewStates, handleSTCodeChange]);
+
   const renderEditor = () => {
     const currentState = viewStates[currentView];
     
     switch (currentView) {
       case PLCViewType.LD:
         return (
-          <div className="h-full bg-white">
-            <LadderEditor onCodeChange={handleLDCodeChange} />
+          <div className="h-full flex flex-col bg-white">
+            {/* LDエディタヘッダー */}
+            <div className="bg-gray-50 border-b border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-medium text-gray-900">Ladder Diagram エディタ</h2>
+                  <p className="text-sm text-gray-500">ラダー図プログラミング</p>
+                  {lastConvertedView && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      💡 {lastConvertedView}から自動変換されました
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => {
+                      const ldData = JSON.stringify(currentState.sourceCode, null, 2);
+                      navigator.clipboard.writeText(ldData);
+                      alert('ラダー図データをクリップボードにコピーしました！');
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    📋 コピー
+                  </button>
+                  <button 
+                    onClick={handleManualValidation}
+                    className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    ✓ 構文チェック
+                  </button>
+                  <button 
+                    onClick={() => setShowFBPalette(!showFBPalette)}
+                    className={`px-3 py-1 text-xs rounded transition-colors ${
+                      showFBPalette 
+                        ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                        : 'bg-gray-600 text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    🧩 FBパレット
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* メインエディタエリア（2列レイアウト） */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* ラダー図エディタ */}
+              <div className={`flex-1 ${showFBPalette ? 'border-r border-gray-300' : ''}`}>
+                <LadderEditor onCodeChange={handleLDCodeChange} />
+              </div>
+
+              {/* FBパレット（サイドバー） */}
+              {showFBPalette && (
+                <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col">
+                  <div className="p-3 border-b border-gray-300">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                      🧩 FBブロック
+                    </h3>
+                    <p className="text-xs text-gray-600">
+                      ファンクションブロックをラダー図にドラッグ&ドロップできます
+                    </p>
+                  </div>
+                  <FBPalette 
+                    onInsertFB={(fbCode) => {
+                      // LD用のFBブロック挿入処理
+                      alert(`ラダー図へのFB挿入機能は開発中です。\n生成されたコード:\n${fbCode}`);
+                      console.log('LD FB Insert:', fbCode);
+                    }}
+                    onCreateNewFB={() => {
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('navigate-to-fb-editor'));
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* ステータスバー */}
+            <div className="bg-gray-50 border-t border-gray-200 px-4 py-2 text-sm text-gray-600">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <span>ラダー図モード</span>
+                  <span className={`${currentState.hasChanges ? 'text-orange-600' : 'text-green-600'}`}>
+                    ● {currentState.hasChanges ? '未保存の変更' : '同期済み'}
+                  </span>
+                  {currentState.validationResult && (
+                    <span className={`${currentState.validationResult.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      🔍 {getValidationSummary(currentState.validationResult)}
+                    </span>
+                  )}
+                  {showFBPalette && (
+                    <span className="text-blue-600">
+                      🧩 FBパレット表示中
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <span>最終更新: {new Date(currentState.lastModified).toLocaleTimeString()}</span>
+                </div>
+              </div>
+            </div>
           </div>
         );
       case PLCViewType.SFC:
@@ -447,21 +589,59 @@ export default function PLCEditor(): React.JSX.Element {
                   >
                     ✓ 構文チェック
                   </button>
+                  <button 
+                    onClick={() => setShowFBPalette(!showFBPalette)}
+                    className={`px-3 py-1 text-xs rounded transition-colors ${
+                      showFBPalette 
+                        ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                        : 'bg-gray-600 text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    🧩 FBパレット
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* STコードエディタ */}
-            <div className="flex-1 p-4">
-              <div className="h-full border border-gray-300 rounded-lg overflow-hidden bg-white">
-                <textarea
-                  value={currentState.sourceCode}
-                  onChange={(e) => handleSTCodeChange(e.target.value)}
-                  className="w-full h-full p-4 font-mono text-sm resize-none border-none outline-none"
-                  placeholder="Structured Text コードを入力してください..."
-                  style={{ minHeight: '500px' }}
-                />
+            {/* メインエディタエリア（2列レイアウト） */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* STコードエディタ */}
+              <div className={`flex-1 p-4 ${showFBPalette ? 'border-r border-gray-300' : ''}`}>
+                <div className="h-full border border-gray-300 rounded-lg overflow-hidden bg-white">
+                  <textarea
+                    value={currentState.sourceCode}
+                    onChange={(e) => handleSTCodeChange(e.target.value)}
+                    className="w-full h-full p-4 font-mono text-sm resize-none border-none outline-none"
+                    placeholder="Structured Text コードを入力してください...
+
+// カスタムファンクションブロックを使用する場合:
+// 1. 右側のFBパレットからファンクションブロックを選択
+// 2. 「挿入」ボタンで呼び出しコードを自動生成
+// 3. 必要に応じてパラメータを編集
+
+// 例: 
+// myTimer : TON;
+// myTimer(IN := start_signal, PT := T#5s);
+// output := myTimer.Q;"
+                    style={{ minHeight: '500px' }}
+                  />
+                </div>
               </div>
+
+              {/* FBパレット（サイドバー） */}
+              {showFBPalette && (
+                <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col">
+                  <FBPalette 
+                    onInsertFB={handleInsertFB}
+                    onCreateNewFB={() => {
+                      // 新しいFB作成機能への遷移を親コンポーネントに通知
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('navigate-to-fb-editor'));
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* ステータスバー */}
@@ -476,6 +656,11 @@ export default function PLCEditor(): React.JSX.Element {
                   {currentState.validationResult && (
                     <span className={`${currentState.validationResult.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       🔍 {getValidationSummary(currentState.validationResult)}
+                    </span>
+                  )}
+                  {showFBPalette && (
+                    <span className="text-blue-600">
+                      🧩 FBパレット表示中
                     </span>
                   )}
                 </div>

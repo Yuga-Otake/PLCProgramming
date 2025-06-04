@@ -52,6 +52,21 @@ export default function HomePage(): React.JSX.Element {
     setActiveMode('custom-fb-library');
   };
 
+  // FBエディタへの遷移イベントリスナー
+  React.useEffect(() => {
+    const handleNavigateToFBEditor = () => {
+      setActiveMode('custom-fb-editor');
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('navigate-to-fb-editor', handleNavigateToFBEditor);
+      
+      return () => {
+        window.removeEventListener('navigate-to-fb-editor', handleNavigateToFBEditor);
+      };
+    }
+  }, []);
+
   return (
     <div className="h-screen w-screen bg-gray-50 overflow-hidden">
       {/* メインヘッダー */}

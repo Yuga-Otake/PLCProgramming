@@ -184,6 +184,63 @@ export function CounterBlock({ id, variable = 'C001', selected, onSelect, onEdit
   );
 }
 
+// カスタムFBブロックコンポーネント
+interface CustomFBBlockProps extends LadderElementProps {
+  fbName?: string;
+  inputCount?: number;
+  outputCount?: number;
+}
+
+export function CustomFBBlock({ 
+  id, 
+  variable = 'FB_INST', 
+  selected, 
+  onSelect, 
+  onEdit,
+  fbName = 'CustomFB',
+  inputCount = 2,
+  outputCount = 1
+}: CustomFBBlockProps): JSX.Element {
+  return (
+    <div 
+      className={`relative inline-flex items-center justify-center w-32 h-20 border-2 cursor-pointer transition-colors ${
+        selected ? 'border-blue-500 bg-blue-50' : 'border-indigo-600 bg-indigo-50 hover:border-indigo-700'
+      }`}
+      onClick={() => onSelect?.(id)}
+      onDoubleClick={() => onEdit?.(id)}
+    >
+      {/* カスタムFBブロック */}
+      <div className="flex flex-col items-center justify-center w-full h-full p-1">
+        <span className="text-xs font-bold text-indigo-700 truncate max-w-full">{fbName}</span>
+        <span className="text-xs text-indigo-600">FB</span>
+      </div>
+      
+      {/* 変数名 */}
+      <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs font-mono text-gray-700">
+        {variable}
+      </div>
+      
+      {/* 入力端子 */}
+      {Array.from({ length: inputCount }).map((_, index) => (
+        <div 
+          key={`input-${index}`}
+          className="absolute -left-1 w-2 h-2 bg-indigo-600 rounded-full"
+          style={{ top: `${20 + (index * 15)}px` }}
+        />
+      ))}
+      
+      {/* 出力端子 */}
+      {Array.from({ length: outputCount }).map((_, index) => (
+        <div 
+          key={`output-${index}`}
+          className="absolute -right-1 w-2 h-2 bg-indigo-600 rounded-full"
+          style={{ top: `${20 + (index * 15)}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // シンプルな水平配線
 export function WireHorizontal({ id, variable: _variable = 'WIRE', selected, onSelect, onEdit }: LadderElementProps): JSX.Element {
   return (
@@ -276,6 +333,7 @@ export enum LadderElementType {
   RESET_COIL = 'RESET_COIL',
   TIMER_BLOCK = 'TIMER_BLOCK',
   COUNTER_BLOCK = 'COUNTER_BLOCK',
+  CUSTOM_FB_BLOCK = 'CUSTOM_FB_BLOCK',  // カスタムFBブロック追加
   // シンプルな配線要素
   WIRE_HORIZONTAL = 'WIRE_HORIZONTAL',
   WIRE_VERTICAL = 'WIRE_VERTICAL',
@@ -299,6 +357,8 @@ export function getLadderElement(type: LadderElementType, props: LadderElementPr
       return <TimerBlock {...props} />;
     case LadderElementType.COUNTER_BLOCK:
       return <CounterBlock {...props} />;
+    case LadderElementType.CUSTOM_FB_BLOCK:
+      return <CustomFBBlock {...props} />;
     case LadderElementType.WIRE_HORIZONTAL:
       return <WireHorizontal {...props} />;
     case LadderElementType.WIRE_VERTICAL:

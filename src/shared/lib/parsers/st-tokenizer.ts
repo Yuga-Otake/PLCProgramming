@@ -28,10 +28,11 @@ export const EndRepeat = createToken({ name: 'EndRepeat', pattern: /END_REPEAT/i
 export const Case = createToken({ name: 'Case', pattern: /CASE/i });
 export const Of = createToken({ name: 'Of', pattern: /OF/i });
 export const EndCase = createToken({ name: 'EndCase', pattern: /END_CASE/i });
-export const Function = createToken({ name: 'Function', pattern: /FUNCTION/i });
-export const EndFunction = createToken({ name: 'EndFunction', pattern: /END_FUNCTION/i });
+// FunctionBlock must come before Function (longer match first)
 export const FunctionBlock = createToken({ name: 'FunctionBlock', pattern: /FUNCTION_BLOCK/i });
 export const EndFunctionBlock = createToken({ name: 'EndFunctionBlock', pattern: /END_FUNCTION_BLOCK/i });
+export const Function = createToken({ name: 'Function', pattern: /FUNCTION/i });
+export const EndFunction = createToken({ name: 'EndFunction', pattern: /END_FUNCTION/i });
 
 // Data Types
 export const Bool = createToken({ name: 'Bool', pattern: /BOOL/i });
@@ -122,13 +123,13 @@ export const WhiteSpace = createToken({
   group: Lexer.SKIPPED 
 });
 
-// Token array for lexer (order matters!)
+// Token array for lexer (order matters! Longer tokens must come first)
 export const allTokens = [
   // Comments first (longest match)
   BlockComment,
   LineComment,
   
-  // Keywords (before identifiers)
+  // Keywords (longer keywords before shorter ones)
   Program, EndProgram,
   Var, EndVar,
   If, Then, Else, ElsIf, EndIf,
@@ -136,8 +137,9 @@ export const allTokens = [
   While, EndWhile,
   Repeat, Until, EndRepeat,
   Case, Of, EndCase,
-  Function, EndFunction,
+  // FunctionBlock must come before Function (longer match first)
   FunctionBlock, EndFunctionBlock,
+  Function, EndFunction,
   
   // Data types
   Bool, Int, Dint, Real, String, Time, Date,
